@@ -1,14 +1,40 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:kita_sehat/screen/beranda.dart';
-import 'package:kita_sehat/screen/login.dart';
-import 'package:kita_sehat/screen/register.dart';
+import 'package:kita_sehat/model/user_model.dart';
 import 'package:kita_sehat/screen/splash.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   await Hive.initFlutter();
-  runApp(MainApp());
+  Hive.registerAdapter(UserAdapter()); // Daftarkan adapter untuk User
+  await Hive.openBox<User>('users');
+
+  // Inisialisasi notifikasi
+  AwesomeNotifications().initialize(
+    null, // Icon aplikasi
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic notifications',
+        channelDescription: 'Notification channel for basic notifications',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+      ),
+    ],
+  );
+
+  // Permission untuk notifikasi
+  Future<void> requestNotificationPermission() async {
+    var status = await Permission.notification.request();
+    if (status.isGranted) {
+      print("Notifikasi diizinkan.");
+    } else {
+      print("Notifikasi tidak diizinkan.");
+    }
+  }
+
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -16,6 +42,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: HomePage());
+    return const MaterialApp(debugShowCheckedModeBanner: false, home: Splash());
   }
 }
